@@ -1,24 +1,47 @@
 {
   "name": "guidehub-server",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Guidehub backend",
+  "main": "dist/index.js",
+  "type": "commonjs",
+  "license": "MIT",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only --no-notify --ignore-watch node_modules --watch src src/index.ts",
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "start": "node dist/index.js",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "lint": "eslint 'src/**/*.{ts,tsx}' --fix",
+    "test": "vitest",
+    "prepare": "husky install"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.0",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^7.8.0",
+    "stripe": "^12.0.0"
+  },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
-    "@types/node": "^25.0.0",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.2",
+    "@types/mongoose": "^5.11.97",
+    "@types/node": "^20.19.26",
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
+    "eslint": "^8.46.0",
+    "husky": "^8.0.0",
+    "lint-staged": "^16.2.7",
+    "nodemon": "^3.1.11",
+    "prettier": "^2.8.8",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.9.3"
+    "tsconfig-paths": "^4.1.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   }
 }
