@@ -1,4 +1,4 @@
-# 🧭 GuideHub Backend
+# 🧭 GuideHub (Backend)
 Scalable API powering the GuideHub travel & guide marketplace.
 
 The GuideHub Backend is a modular, secure, and scalable REST API built to support the GuideHub platform — connecting travelers with verified guides worldwide.
