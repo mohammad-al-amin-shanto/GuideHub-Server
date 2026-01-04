@@ -15,37 +15,58 @@ export const protect = async (
 ) => {
   try {
     // get token from cookie first, then Authorization header
-    const cookieToken = (req as any).cookies?.token || req.cookies?.token;
+    const COOKIE_NAME = process.env.COOKIE_NAME || "token";
+
+    const cookieToken =
+      (req as any).cookies?.[COOKIE_NAME] || req.cookies?.[COOKIE_NAME];
+
     const header = req.headers.authorization;
     const headerToken =
       header && header.startsWith("Bearer ") ? header.split(" ")[1] : undefined;
 
     const token = cookieToken || headerToken;
     if (!token) {
-      return res.status(401).json({ message: "Not authorized" });
+      return res.status(401).json({
+        success: false,
+        message: "Not authorized",
+      });
     }
 
     // verifyToken should throw if invalid/expired
-    const payload = verifyToken(token) as { id?: string } | undefined;
+    const payload = verifyToken(token) as
+      | { id?: string; role?: string }
+      | undefined;
+
     if (!payload?.id) {
-      return res.status(401).json({ message: "Invalid token" });
+      return res.status(401).json({
+        success: false,
+        message: "Invalid token",
+      });
     }
 
-    const user = await User.findById(payload.id)
+    const user = (await User.findById(payload.id)
       .select("-password")
       .lean()
-      .exec();
+      .exec()) as Express.Request["user"];
+
     if (!user) {
-      return res.status(401).json({ message: "User not found" });
+      return res.status(401).json({
+        success: false,
+        message: "User not found",
+      });
     }
 
     // attach user to request for downstream handlers
-    (req as any).user = user;
+    (req as any).user = {
+      ...user,
+      role: user.role,
+    };
     next();
   } catch (err) {
     // token verify failures etc.
-    return res
-      .status(401)
-      .json({ message: "Not authorized", error: (err as Error).message });
+    return res.status(401).json({
+      success: false,
+      message: "Not authorized",
+    });
   }
 };
