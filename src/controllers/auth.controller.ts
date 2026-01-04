@@ -5,8 +5,6 @@ import bcrypt from "bcryptjs";
 import User from "../models/User.model";
 import asyncHandler from "../middleware/asyncHandler";
 
-type Maybe<T> = T | null;
-
 // ENV + CONSTANTS
 const COOKIE_NAME = process.env.COOKIE_NAME || "token";
 
@@ -44,52 +42,58 @@ function signToken(payload: object) {
   return jwt.sign(payload, JWT_SECRET, opts);
 }
 
-function getTokenFromReq(req: Request): Maybe<string> {
-  const cookieToken = (req as any).cookies?.[COOKIE_NAME];
-  if (cookieToken) return cookieToken;
-
-  const header = req.headers.authorization;
-  if (header && header.startsWith("Bearer ")) {
-    return header.split(" ")[1];
-  }
-
-  return null;
-}
-
 // --------------------------------------------------------
 // POST /api/auth/register
 // SAVE ROLE CORRECTLY 🔥
 // --------------------------------------------------------
 export const register = asyncHandler(async (req: Request, res: Response) => {
   const { name, email, password, role } = req.body || {};
+  const emailNormalized = email?.toLowerCase();
 
-  if (!email || !password)
-    return res.status(400).json({ message: "Email & password required" });
+  if (!emailNormalized || !password)
+    return res.status(400).json({
+      success: false,
+      message: "Email & password required",
+    });
 
-  const existing = await User.findOne({ email }).lean().exec();
+  const existing = await User.findOne({ email: emailNormalized }).lean().exec();
+
   if (existing)
-    return res.status(409).json({ message: "Email already registered" });
+    return res.status(409).json({
+      success: false,
+      message: "Email already registered",
+    });
 
   // 🔥 FIX: SAVE ROLE FROM CLIENT
+  const allowedRoles = ["tourist", "guide"];
+  const safeRole = allowedRoles.includes(role) ? role : "tourist";
+
   const user = new User({
     name,
-    email,
+    email: emailNormalized,
     password,
-    role: role || "tourist",
+    role: safeRole,
   });
 
   await user.save();
 
-  const token = signToken({ id: user._id.toString() });
+  const token = signToken({
+    id: user._id.toString(),
+    role: user.role,
+  });
 
   res.cookie(COOKIE_NAME, token, cookieOptions());
 
   res.status(201).json({
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
+    success: true,
+    message: "Registration successful",
+    data: {
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     },
   });
 });
@@ -100,21 +104,39 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 // --------------------------------------------------------
 export const login = asyncHandler(async (req: Request, res: Response) => {
   const { email, password, remember } = req.body || {};
+  const emailNormalized = email?.toLowerCase();
 
-  if (!email || !password)
-    return res.status(400).json({ message: "Email & password required" });
+  if (!emailNormalized || !password)
+    return res.status(400).json({
+      success: false,
+      message: "Email & password required",
+    });
 
-  const user = await User.findOne({ email }).select("+password").exec();
-  if (!user) return res.status(401).json({ message: "Invalid credentials" });
+  const user = await User.findOne({ email: emailNormalized })
+    .select("+password")
+    .exec();
+
+  if (!user)
+    return res.status(401).json({
+      success: false,
+      message: "Invalid credentials",
+    });
 
   const isMatch =
     typeof (user as any).comparePassword === "function"
       ? await (user as any).comparePassword(password)
       : await bcrypt.compare(password, user.password);
 
-  if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
+  if (!isMatch)
+    return res.status(401).json({
+      success: false,
+      message: "Invalid credentials",
+    });
 
-  const token = signToken({ id: user._id.toString() });
+  const token = signToken({
+    id: user._id.toString(),
+    role: user.role,
+  });
 
   const opts = cookieOptions(
     remember ? REMEMBER_COOKIE_MAX_AGE : DEFAULT_COOKIE_MAX_AGE
@@ -123,11 +145,15 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   res.cookie(COOKIE_NAME, token, opts);
 
   res.json({
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
+    success: true,
+    message: "Login successful",
+    data: {
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
     },
   });
 });
@@ -143,9 +169,13 @@ export const logout = asyncHandler(async (_req: Request, res: Response) => {
     secure: isProd,
     sameSite: (isProd ? "none" : "lax") as "none" | "lax",
     path: "/",
+    maxAge: 0,
   });
 
-  res.json({ ok: true });
+  res.json({
+    success: true,
+    message: "Logged out successfully",
+  });
 });
 
 // --------------------------------------------------------
@@ -153,23 +183,17 @@ export const logout = asyncHandler(async (_req: Request, res: Response) => {
 // RETURNS ROLE 🔥
 // --------------------------------------------------------
 export const me = asyncHandler(async (req: Request, res: Response) => {
-  const token = getTokenFromReq(req);
-  if (!token) return res.status(401).json({ message: "Not authenticated" });
+  if (!req.user)
+    return res.status(401).json({
+      success: false,
+      message: "Not authenticated",
+    });
 
-  try {
-    const payload = jwt.verify(token, JWT_SECRET) as { id?: string };
-
-    if (!payload?.id) return res.status(401).json({ message: "Invalid token" });
-
-    const user = await User.findById(payload.id)
-      .select("-password")
-      .lean()
-      .exec();
-
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    res.json({ user });
-  } catch {
-    res.status(401).json({ message: "Invalid or expired token" });
-  }
+  res.json({
+    success: true,
+    message: "User fetched successfully",
+    data: {
+      user: req.user,
+    },
+  });
 });
