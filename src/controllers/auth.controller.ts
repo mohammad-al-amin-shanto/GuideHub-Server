@@ -56,6 +56,13 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
       message: "Email & password required",
     });
 
+  if (!name) {
+    return res.status(400).json({
+      success: false,
+      message: "Name is required",
+    });
+  }
+
   const existing = await User.findOne({ email: emailNormalized }).lean().exec();
 
   if (existing)
