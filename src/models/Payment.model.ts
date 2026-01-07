@@ -11,7 +11,13 @@ export interface PaymentDocument extends Document {
 
 const PaymentSchema = new Schema<PaymentDocument>(
   {
-    booking: { type: Schema.Types.ObjectId, ref: "Booking", required: true },
+    booking: {
+      type: Schema.Types.ObjectId,
+      ref: "Booking",
+      required: true,
+      unique: true,
+    },
+
     stripeChargeId: { type: String },
     amount: { type: Number, required: true },
     status: {

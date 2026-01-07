@@ -4,18 +4,40 @@ import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import helmet from "helmet";
 
+// Routes
 import authRoutes from "./routes/auth.routes";
 import usersRoutes from "./routes/users.routes";
 import listingsRoutes from "./routes/listings.routes";
 import bookingsRoutes from "./routes/bookings.routes";
 import paymentsRoutes from "./routes/payments.routes";
+
+// Controllers
+import { handleStripeWebhook } from "./controllers/payments.controller";
+
+// Middleware
 import errorHandler from "./middleware/errorHandler";
 
 const app = express();
 
+/* ======================================================
+   SECURITY
+====================================================== */
 app.use(helmet());
 
-// 🔥 Secure CORS setup
+/* ======================================================
+   🔥 STRIPE WEBHOOK (MUST BE FIRST)
+   - Uses raw body
+   - Must come BEFORE express.json()
+====================================================== */
+app.post(
+  "/api/payments/webhook",
+  express.raw({ type: "application/json" }),
+  handleStripeWebhook
+);
+
+/* ======================================================
+   CORS CONFIG
+====================================================== */
 const WHITELIST = [
   "http://localhost:3000",
   "https://guide-hub-client.vercel.app",
@@ -24,7 +46,7 @@ const WHITELIST = [
 app.use(
   cors({
     origin: (origin, cb) => {
-      if (!origin) return cb(null, true);
+      if (!origin) return cb(null, true); // allow server-to-server (Stripe)
       if (WHITELIST.includes(origin)) return cb(null, true);
       return cb(new Error("Not allowed by CORS"));
     },
@@ -32,12 +54,21 @@ app.use(
   })
 );
 
+/* ======================================================
+   BODY PARSERS (AFTER WEBHOOK)
+====================================================== */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+/* ======================================================
+   LOGGING
+====================================================== */
 app.use(morgan("tiny"));
 
-// root for quick check
+/* ======================================================
+   HEALTH & ROOT
+====================================================== */
 app.get("/", (_req, res) => {
   res.json({
     ok: true,
@@ -46,17 +77,22 @@ app.get("/", (_req, res) => {
   });
 });
 
-// routes
+app.get("/health", (_req, res) => {
+  res.json({ ok: true });
+});
+
+/* ======================================================
+   API ROUTES
+====================================================== */
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/listings", listingsRoutes);
 app.use("/api/bookings", bookingsRoutes);
 app.use("/api/payments", paymentsRoutes);
 
-// health
-app.get("/health", (_req, res) => res.json({ ok: true }));
-
-// error handler
+/* ======================================================
+   ERROR HANDLER (LAST)
+====================================================== */
 app.use(errorHandler);
 
 export default app;
