@@ -20,7 +20,7 @@ const DEFAULT_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
 const REMEMBER_COOKIE_MAX_AGE = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 // --------------------------------------------------------
-// COOKIE OPTIONS (Render + Vercel cross-site compatible)
+// COOKIE OPTIONS
 // --------------------------------------------------------
 function cookieOptions(maxAge = DEFAULT_COOKIE_MAX_AGE) {
   return {
@@ -29,7 +29,6 @@ function cookieOptions(maxAge = DEFAULT_COOKIE_MAX_AGE) {
     sameSite: "none" as const,
     maxAge,
     path: "/",
-    domain: "guidehub-server.onrender.com",
   };
 }
 
@@ -189,6 +188,7 @@ export const logout = asyncHandler(async (_req: Request, res: Response) => {
 // RETURNS ROLE 🔥
 // --------------------------------------------------------
 export const me = asyncHandler(async (req: Request, res: Response) => {
+  res.setHeader("Cache-Control", "no-store");
   if (!req.user)
     return res.status(401).json({
       success: false,

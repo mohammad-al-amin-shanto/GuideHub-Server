@@ -38,18 +38,10 @@ app.post(
 /* ======================================================
    CORS CONFIG
 ====================================================== */
-const WHITELIST = [
-  "http://localhost:3000",
-  "https://guide-hub-client.vercel.app",
-];
 
 app.use(
   cors({
-    origin: (origin, cb) => {
-      if (!origin) return cb(null, true); // allow server-to-server (Stripe)
-      if (WHITELIST.includes(origin)) return cb(null, true);
-      return cb(new Error("Not allowed by CORS"));
-    },
+    origin: "https://guide-hub-client.vercel.app",
     credentials: true,
   })
 );
