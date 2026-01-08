@@ -23,14 +23,13 @@ const REMEMBER_COOKIE_MAX_AGE = 30 * 24 * 60 * 60 * 1000; // 30 days
 // COOKIE OPTIONS (Render + Vercel cross-site compatible)
 // --------------------------------------------------------
 function cookieOptions(maxAge = DEFAULT_COOKIE_MAX_AGE) {
-  const isProd = process.env.NODE_ENV === "production";
-
   return {
     httpOnly: true,
-    secure: isProd,
-    sameSite: (isProd ? "none" : "lax") as "none" | "lax",
+    secure: true,
+    sameSite: "none" as const,
     maxAge,
     path: "/",
+    domain: "guidehub-server.onrender.com",
   };
 }
 

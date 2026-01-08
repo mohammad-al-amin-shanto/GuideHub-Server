@@ -1,6 +1,6 @@
 # 🧭 GuideHub (Backend)
 
-Scalable API powering the GuideHub travel & guide marketplace.
+Scalable REST API powering the GuideHub travel & guide marketplace.
 
 The GuideHub Backend is a modular, secure, and scalable REST API built to support the GuideHub platform — connecting travelers with verified guides worldwide.
 It handles authentication, listings, bookings, reviews, admin operations, and more, while maintaining clean code architecture and strong TypeScript foundations.
@@ -15,10 +15,10 @@ It handles authentication, listings, bookings, reviews, admin operations, and mo
 | Language       | TypeScript                     |
 | Framework      | Express.js                     |
 | Database       | MongoDB + Mongoose             |
-| Authentication | JWT + bcrypt                   |
-| Validation     | Zod / Joi (whichever you use)  |
-| Utilities      | Cloudinary, Multer, Nodemailer |
-| Architecture   | MVC + Service Layer            |
+| Authentication | JWT (HTTP-only cookies)        |
+| Payments       | Stripe (Payment Intents)       |
+| Security       | bcrypt, helmet, CORS           |
+| Architecture   | Modular MVC-style structure    |
 
 ---
 
@@ -27,15 +27,15 @@ It handles authentication, listings, bookings, reviews, admin operations, and mo
 ```
 src/
  ┣ config/            # DB setup, environment configs
- ┣ controllers/       # Route controllers
- ┣ services/          # Business logic layer
+ ┣ controllers/       # Route controllers & business logic
  ┣ routes/            # Express routes
  ┣ models/            # Mongoose schemas
  ┣ middleware/        # Auth, validation, error handlers
  ┣ utils/             # Helper functions
  ┣ types/             # Global TS types
  ┣ app.ts             # Express app config
- ┗ server.ts          # Server bootstrap
+ ┗ index.ts          # Server bootstrap
+
 ```
 
 ---
@@ -43,10 +43,11 @@ src/
 ## Key Design Principles
 
 ✔ Strong separation of concerns
-✔ Reusable business logic (services)
+✔ Modular controller-based architecture
 ✔ Typed API responses
 ✔ Centralized error handling
-✔ Secure authentication workflow
+✔ Secure, role-based authentication workflow  
+✔ Transaction-safe booking & payment flows
 
 ---
 
@@ -60,7 +61,7 @@ src/
 - Reviews & Ratings
 - Image/File Uploads (Cloudinary or local)
 - Admin Panel Endpoints
-- Email Notifications
+- Email Notifications (planned)
 - Advanced Error Handling
 
 ---
@@ -89,7 +90,13 @@ PORT=5000
 MONGO_URI=mongodb+srv://...
 JWT_SECRET=your_jwt_secret
 JWT_EXPIRES_IN=7d
+COOKIE_NAME=token
 CLIENT_URL=http://localhost:3000
+
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+PAYMENT_CURRENCY=usd
+
 ```
 
 Add or remove based on your stack.
@@ -114,7 +121,8 @@ npm start
 API will run on:
 
 ```
-http://localhost:5000/api/v1
+http://localhost:5000/api
+
 ```
 
 ---
@@ -124,13 +132,20 @@ http://localhost:5000/api/v1
 Example route paths:
 
 ```
-POST   /auth/register
-POST   /auth/login
-GET    /guides
-GET    /guides/:id
-POST   /bookings
-GET    /users/me
-PUT    /admin/user/:id
+POST   /api/auth/register
+POST   /api/auth/login
+GET    /api/auth/me
+
+GET    /api/listings
+GET    /api/listings/:id
+
+POST   /api/bookings
+GET    /api/bookings/me
+PATCH  /api/bookings/:id/status
+
+POST   /api/payments/create-intent
+POST   /api/payments/webhook
+
 ```
 
 All responses use a standardized format:
