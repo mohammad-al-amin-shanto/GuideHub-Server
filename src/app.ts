@@ -39,9 +39,25 @@ app.post(
    CORS CONFIG
 ====================================================== */
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  "http://192.168.0.108:3000",
+  "https://guide-hub-client.vercel.app",
+];
+
 app.use(
   cors({
-    origin: "https://guide-hub-client.vercel.app",
+    origin: (origin, callback) => {
+      // allow server-to-server, curl, Stripe, etc.
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("CORS blocked: " + origin), false);
+    },
     credentials: true,
   })
 );
