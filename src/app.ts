@@ -98,7 +98,7 @@ app.use("/api/users", usersRoutes);
 app.use("/api/listings", listingsRoutes);
 app.use("/api/bookings", bookingsRoutes);
 app.use("/api/payments", paymentsRoutes);
-app.use("/api/guide", guideRoutes);
+app.use("/api/guides", guideRoutes);
 
 /* ======================================================
    ERROR HANDLER (LAST)
