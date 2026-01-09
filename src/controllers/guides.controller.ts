@@ -77,6 +77,7 @@ export const getGuideStats = asyncHandler(
         totalBookings: 0,
         totalEarnings: 0,
         rating: 0,
+        recentActivity: [],
       },
     });
   }
