@@ -57,3 +57,27 @@ export const listGuides = asyncHandler(async (req: Request, res: Response) => {
 
   res.json({ guides });
 });
+
+// GET /api/guide/stats/:id
+export const getGuideStats = asyncHandler(
+  async (req: Request, res: Response) => {
+    const guideId = req.params.id;
+
+    if (!guideId) {
+      return res.status(400).json({
+        success: false,
+        message: "Guide ID is required",
+      });
+    }
+
+    // 🔹 Placeholder stats (expand later)
+    res.json({
+      success: true,
+      data: {
+        totalBookings: 0,
+        totalEarnings: 0,
+        rating: 0,
+      },
+    });
+  }
+);

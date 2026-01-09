@@ -10,6 +10,7 @@ import usersRoutes from "./routes/users.routes";
 import listingsRoutes from "./routes/listings.routes";
 import bookingsRoutes from "./routes/bookings.routes";
 import paymentsRoutes from "./routes/payments.routes";
+import guideRoutes from "./routes/guides.routes";
 
 // Controllers
 import { handleStripeWebhook } from "./controllers/payments.controller";
@@ -97,6 +98,7 @@ app.use("/api/users", usersRoutes);
 app.use("/api/listings", listingsRoutes);
 app.use("/api/bookings", bookingsRoutes);
 app.use("/api/payments", paymentsRoutes);
+app.use("/api/guide", guideRoutes);
 
 /* ======================================================
    ERROR HANDLER (LAST)
