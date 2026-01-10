@@ -82,3 +82,51 @@ export const getGuideStats = asyncHandler(
     });
   }
 );
+
+// GET /api/guides/:id
+export const getGuideById = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const guide = await GuideModel.findById(id)
+      .select("name location rating img city price_per_hour bio tags specialty")
+      .lean<GuideLean>()
+      .exec();
+
+    if (!guide) {
+      return res.status(404).json({
+        success: false,
+        message: "Guide not found",
+      });
+    }
+
+    type GuideLean = {
+      _id: string;
+      name: string;
+      location?: string;
+      rating?: number;
+      img?: string;
+      city?: string;
+      bio?: string;
+      specialty?: string;
+      price_per_hour?: number;
+      tags?: string[];
+    };
+
+    res.json({
+      success: true,
+      guide: {
+        id: guide._id,
+        name: guide.name,
+        location: guide.location,
+        rating: guide.rating,
+        img: guide.img,
+        city: guide.city,
+        bio: guide.bio,
+        specialty: guide.specialty,
+        pricePerHour: guide.price_per_hour,
+        tags: guide.tags,
+      },
+    });
+  }
+);
