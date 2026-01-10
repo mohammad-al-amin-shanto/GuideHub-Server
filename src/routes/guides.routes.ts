@@ -1,12 +1,20 @@
 import { Router } from "express";
-import { getGuideStats, getGuideById } from "../controllers/guides.controller";
+import {
+  listGuides,
+  getGuideBySlug,
+  getGuideStats,
+} from "../controllers/guides.controller";
 import { protect } from "../middleware/auth";
-import { listGuides } from "./../controllers/guides.controller";
 
 const router = Router();
 
+// List guides
 router.get("/", listGuides);
-router.get("/:id", getGuideById);
+
+// Guide stats (protected)
 router.get("/stats/:id", protect, getGuideStats);
+
+// Public guide profile (by slug)
+router.get("/:slug", getGuideBySlug);
 
 export default router;

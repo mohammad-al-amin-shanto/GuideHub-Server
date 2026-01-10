@@ -3,6 +3,72 @@ import asyncHandler from "../middleware/asyncHandler";
 import CATEGORY_MAP from "../utils/categoryMap";
 import GuideModel from "../models/Guide.model";
 
+type GuideLean = {
+  _id: string;
+  name: string;
+  slug: string;
+
+  city?: string;
+  country?: string;
+
+  rating?: number;
+  reviewCount?: number;
+  isVerified?: boolean;
+
+  coverImage?: string;
+  avatar?: string;
+
+  bio?: string;
+  specialty?: string;
+
+  pricePerHour?: number;
+  currency?: string;
+
+  tags?: string[];
+};
+
+// GET /api/guides/:slug
+export const getGuideBySlug = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { slug } = req.params;
+
+    const guide = await GuideModel.findOne({ slug })
+      .select(
+        "name slug city country rating reviewCount isVerified coverImage avatar bio specialty pricePerHour currency tags"
+      )
+      .lean<GuideLean>()
+      .exec();
+
+    if (!guide) {
+      return res.status(404).json({
+        success: false,
+        message: "Guide not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      guide: {
+        id: guide._id,
+        slug: guide.slug,
+        name: guide.name,
+        city: guide.city,
+        country: guide.country,
+        rating: guide.rating,
+        reviewCount: guide.reviewCount,
+        isVerified: guide.isVerified,
+        coverImage: guide.coverImage,
+        avatar: guide.avatar,
+        bio: guide.bio,
+        specialty: guide.specialty,
+        pricePerHour: guide.pricePerHour,
+        currency: guide.currency,
+        tags: guide.tags,
+      },
+    });
+  }
+);
+
 // GET /api/guides (with optional query: category, tag, q, city, limit, skip)
 export const listGuides = asyncHandler(async (req: Request, res: Response) => {
   const raw = req.query as Record<string, any>;
