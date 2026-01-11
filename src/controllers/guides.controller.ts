@@ -34,7 +34,7 @@ export const getGuideBySlug = asyncHandler(
 
     const guide = await GuideModel.findOne({ slug })
       .select(
-        "name slug city country rating reviewCount isVerified coverImage avatar bio specialty pricePerHour currency tags"
+        "name slug city country rating reviewCount coverImage avatar bio specialty pricePerHour currency isVerified tags languages areasCovered availability"
       )
       .lean<GuideLean>()
       .exec();
