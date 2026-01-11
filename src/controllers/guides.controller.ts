@@ -64,6 +64,9 @@ export const getGuideBySlug = asyncHandler(
         pricePerHour: guide.pricePerHour,
         currency: guide.currency,
         tags: guide.tags,
+        languages: (guide as any).languages,
+        areasCovered: (guide as any).areasCovered,
+        availability: (guide as any).availability,
       },
     });
   }
@@ -179,6 +182,9 @@ export const getGuideById = asyncHandler(
       specialty?: string;
       price_per_hour?: number;
       tags?: string[];
+      languages?: string[];
+      areasCovered?: string[];
+      availability?: string;
     };
 
     res.json({
