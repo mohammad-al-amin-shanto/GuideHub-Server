@@ -118,7 +118,7 @@ export const listGuides = asyncHandler(async (req: Request, res: Response) => {
     .skip(skip)
     .limit(limit)
     .select(
-      "name slug city country rating reviewCount isVerified coverImage avatar specialty"
+      "name slug city country rating reviewCount coverImage avatar bio specialty pricePerHour currency isVerified tags languages areasCovered availability"
     )
     .lean()
     .exec();
