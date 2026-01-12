@@ -1,5 +1,12 @@
 import mongoose, { Document, Schema } from "mongoose";
 
+export interface GuideArea {
+  name: string;
+  lat: number;
+  lng: number;
+  visitTime: number;
+}
+
 export interface GuideDocument extends Document {
   name: string;
   slug: string;
@@ -23,6 +30,8 @@ export interface GuideDocument extends Document {
 
   pricePerHour?: number;
   currency?: string;
+
+  areasCovered?: GuideArea[];
 
   createdAt?: Date;
   updatedAt?: Date;
@@ -61,6 +70,15 @@ const GuideSchema = new Schema<GuideDocument>(
 
     pricePerHour: { type: Number, default: 0 },
     currency: { type: String, default: "USD" },
+
+    areasCovered: [
+      {
+        name: { type: String, required: true },
+        lat: { type: Number, required: true },
+        lng: { type: Number, required: true },
+        visitTime: { type: Number, required: true },
+      },
+    ],
   },
   { timestamps: true, collection: "Guides" }
 );
