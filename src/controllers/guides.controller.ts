@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import asyncHandler from "../middleware/asyncHandler";
 import CATEGORY_MAP from "../utils/categoryMap";
 import GuideModel from "../models/Guide.model";
+import { calculateTourStats } from "../utils/tourCalculator";
 
 type GuideLean = {
   _id: string;
@@ -25,6 +26,15 @@ type GuideLean = {
   currency?: string;
 
   tags?: string[];
+  languages?: string[];
+  availability?: string;
+
+  areasCovered?: {
+    name: string;
+    lat: number;
+    lng: number;
+    visitTime: number;
+  }[];
 };
 
 // GET /api/guides/:slug
@@ -46,6 +56,10 @@ export const getGuideBySlug = asyncHandler(
       });
     }
 
+    const tourStats = guide?.areasCovered
+      ? calculateTourStats(guide.areasCovered, guide.city)
+      : null;
+
     res.json({
       success: true,
       guide: {
@@ -64,9 +78,11 @@ export const getGuideBySlug = asyncHandler(
         pricePerHour: guide.pricePerHour,
         currency: guide.currency,
         tags: guide.tags,
-        languages: (guide as any).languages,
-        areasCovered: (guide as any).areasCovered,
-        availability: (guide as any).availability,
+        languages: guide.languages,
+        areasCovered: guide.areasCovered,
+        availability: guide.availability,
+
+        tourStats,
       },
     });
   }
@@ -126,7 +142,13 @@ export const listGuides = asyncHandler(async (req: Request, res: Response) => {
     .lean()
     .exec();
 
-  res.json({ guides });
+  const guidesWithStats = guides.map((g) => ({
+    ...g,
+    tourStats: g.areasCovered
+      ? calculateTourStats(g.areasCovered, g.city)
+      : null,
+  }));
+  res.json({ guides: guidesWithStats });
 });
 
 // GET /api/guide/stats/:id
@@ -160,7 +182,9 @@ export const getGuideById = asyncHandler(
     const { id } = req.params;
 
     const guide = await GuideModel.findById(id)
-      .select("name location rating img city price_per_hour bio tags specialty")
+      .select(
+        "name slug city country rating reviewCount coverImage avatar bio specialty pricePerHour currency isVerified tags languages areasCovered availability"
+      )
       .lean<GuideLean>()
       .exec();
 
